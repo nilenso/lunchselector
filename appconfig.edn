@@ -1,0 +1,54 @@
+{
+ ;; Server Configurations
+ :server-port 3000
+
+ ;; Organization location details
+ :org-latitude "ORG_LATITUDE"
+ :org-longitude "ORG_LONGITUDE"
+
+ ;; Zomato specific keys
+ :zomato-user-key "ZOMATO_USER_KEY"
+ :zomato-api-uri "https://developers.zomato.com/api/v2.1/"
+ :zomato-entity-id "ZOMATO_ENTITY_ID" ;; City ID
+
+ ;; Google OAuth related keys
+ :google-oauth-client-id "OAUTH_CLIENT_ID"
+ :google-oauth-client-secret "OAUTH_CLIENT_SECRET"
+
+ ;; Google OAuth related uris
+ :google-oauth-redirect-uri "http://localhost:3000/login"
+ :google-oauth-code-uri "https://accounts.google.com/o/oauth2/auth?"
+ :google-oauth-token-uri "https://www.googleapis.com/oauth2/v4/token"
+ :google-oauth-user-info-uri "https://www.googleapis.com/oauth2/v1/userinfo?"
+ :google-oauth-scope "email profile"
+ :google-oauth-grant-type "authorization_code"
+ :google-oauth-response-type "code"
+ :google-oauth-approval-prompt "force"
+ :google-oauth-refresh-grant-type "refresh_token"
+
+ ;; Slack OAuth/bot related keys
+ :slack-oauth-client-id "SLACK_OAUTH_CLIENT_ID"
+ :slack-oauth-client-secret  "SLACK_OAUTH_CLIENT_SECRECT"
+ :slack-bot-token-id "SLACK_BOT_TOKEN_ID"
+ :slack-team-name "SLACK_TEAM_NAME"
+ :slack-bot-name "luncher"
+ :slack-lunch-channel-name "lunch"
+
+ ;; Slack API uris
+ :slack-oauth-redirect-uri "http://localhost:3000/slack"
+ :slack-oauth-code-uri  "https://slack.com/oauth/authorize?"
+ :slack-oauth-token-uri "https://slack.com/api/oauth.access?"
+ :slack-post-message-uri "https://slack.com/api/chat.postMessage?"
+ :slack-initiate-rtm-uri "https://slack.com/api/rtm.start?"
+ :slack-create-channel-uri "https://slack.com/api/channels.create?"
+ :slack-list-channel-uri "https://slack.com/api/channels.list?"
+ :slack-user-info-uri "https://slack.com/api/users.info?"
+ :slack-button-image  "https://platform.slack-edge.com/img/add_to_slack@2x.png"
+
+ ;; Slack scope for the oauth token
+ :slack-oauth-scope "client read post"
+
+ ;; Database related keys
+ :database-path "localhost:5432/lunches"
+ :database-subprotocol "postgresql"
+ }
