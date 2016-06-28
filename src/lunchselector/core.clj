@@ -8,7 +8,10 @@
             [lunchselector.oauth :as oauth]
             [lunchselector.slack :as slack]
             [lunchselector.io.oauth-io :as oauth-io]
-            [lunchselector.io.slack-io :as slack-io]))
+            [lunchselector.io.slack-io :as slack-io]
+            [buddy.sign.jwt :as jwt]
+            [clj-time.core :as time]
+            [clj-time.coerce :as time-coerce]))
 
 (defn restaurants
   "This page displays a list of offline + online restaurants"
@@ -27,25 +30,30 @@
     (let [access-token (oauth-io/fetch-google-oauth-token (get-in request [:params "code"]))
           user-resp    (oauth-io/fetch-google-user-details access-token)
           user-details (utils/parse-response-body-map user-resp)]
-      (model/submit-users (:name user-details) (:email user-details))
-      (assoc (res/redirect "/")
-             :cookies {"username" {:value (:name user-details)}
-                       "useremail" {:value (:email user-details)}}))))
+     (if (oauth/validate-token access-token)
+       (do (model/submit-users (:name user-details) (:email user-details))
+           (assoc (res/redirect "/")
+             :cookies {"auth" {:value (jwt/sign {:username (:name user-details)
+                                                 :useremail (:email user-details)
+                                                 :access-token access-token
+                                                 :cookie-expiry (utils/get-expiry-time)}
+                                                (utils/get-config :app-secret-key))
+                               :max-age 3600}}))
+       (res/redirect "/unauthorized")))))
+
 
 (defn home
   "Home Page. Displays a bunch of stuff"
   [request]
-  (let [user  (get-in request [:cookies "username" :value])
-        email (get-in request [:cookies "useremail" :value])]
-    (if (or (nil? user) (nil? email))
-      (res/redirect (oauth/google-oauth-redirect-uri))
-      (do (model/submit-users user email)
-          (res/response
-           (view/render-home user
-                             (model/top-restaurants)
-                             (model/votes-today)
-                             (model/my-votes email)
-                             (slack/slack-oauth-1st-step-uri)))))))
+  (let [user  (get-in request [:unsigned-cookie :username])
+        email (get-in request [:unsigned-cookie :useremail])]
+    (model/submit-users user email)
+    (res/response
+     (view/render-home user
+                       (model/top-restaurants)
+                       (model/votes-today)
+                       (model/my-votes email)
+                       (slack/slack-oauth-1st-step-uri)))))
 
 (defn vote
   "Casts yours votes!"
@@ -83,3 +91,6 @@
       (slack-io/create-channel channel oauth-token))
     (slack-io/establish-slack-websocket ws-uri)
     (res/response "Slack integration done successfully")))
+
+(defn unauthorized [request]
+  (res/response "Unauthorized"))

@@ -12,7 +12,9 @@
                  [clj-time "0.11.0"]
                  [org.clojure/java.jdbc "0.4.2"]
                  [org.postgresql/postgresql "9.4.1207.jre7"]
-                 [commons-validator/commons-validator "1.4.0"]]
+                 [commons-validator/commons-validator "1.4.0"]
+                 [buddy/buddy-sign "1.1.0"]
+                 [clj-time "0.12.0"]]
   :main ^:skip-aot lunchselector.app
   :target-path "target/%s"
   :plugins [[lein-ring "0.9.7"]]
