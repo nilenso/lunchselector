@@ -11,6 +11,7 @@
                  [hiccup "1.0.5"]
                  [clj-time "0.11.0"]
                  [org.clojure/java.jdbc "0.4.2"]
+                 [ring/ring-json "0.4.0"]
                  [org.postgresql/postgresql "9.4.1207.jre7"]
                  [commons-validator/commons-validator "1.4.0"]
                  [ring/ring-devel "1.3.0"]

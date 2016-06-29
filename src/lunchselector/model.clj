@@ -44,15 +44,16 @@
 
 (defn online-restaurants
   "Gets the list of online restaurants from Zomato"
-  [keyword]
-  (let [online-restaurants (fetch-restaurants keyword)
-        response-body (utils/parse-response-body-map online-restaurants)]
-    (loop [restaurant-list (:restaurants response-body)
-           resta ()]
-      (if (empty? restaurant-list)
-        resta
-        (recur (rest restaurant-list)
-               (conj resta (restaurant-name (first restaurant-list))))))))
+  ([] (online-restaurants ""))
+  ([keyword]
+   (let [online-restaurants (fetch-restaurants keyword)
+         response-body (utils/parse-response-body-map online-restaurants)]
+     (loop [restaurant-list (:restaurants response-body)
+            resta ()]
+       (if (empty? restaurant-list)
+         resta
+         (recur (rest restaurant-list)
+                (conj resta (restaurant-name (first restaurant-list)))))))))
 
 (defn submit-votes
   "Submits the votes for restaurants for a particular user."
@@ -61,6 +62,13 @@
     (doseq [x votes]
       (db/cast-vote-safe {:email email :restaurant x}))
     (db/cast-vote-safe {:email email :restaurant votes})))
+
+(defn submit-votes-api
+  "Add the votes to the db with given email and list of restaurant ids"
+  [email ids]
+  (doseq [rest-id ids]
+    (db/cast-votes email rest-id)))
+
 
 (defn submit-users
   "Submits the user and email to the db"
@@ -90,6 +98,11 @@
   [email]
   (db/fetch-my-votes email))
 
+(defn user-votes-today
+  "Fetches the user's vote for today"
+  [email]
+  (db/fetch-user-votes email))
+
 (defn votes-today
   "Fetches the votes submitted today"
   []
@@ -99,3 +112,20 @@
   "Fetches the restaurants that were voted the most"
   []
   (db/fetch-popular-restaurants))
+
+(defn popular-restaurant-for-day-of-week
+  "Fetches the most popular restaurant for the day of the week"
+  []
+  (db/get-most-popular-restaurant-for-day-of-week))
+
+
+(defn remove-user-votes
+  "Removes some of the user's votes for the day"
+  [email restaurant-ids]
+  (doseq [id restaurant-ids]
+    (db/remove-user-votes email id)))
+
+(defn current-votes
+  "Fetches all the votes submitte today"
+  []
+  (db/current-votes))

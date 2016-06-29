@@ -2,7 +2,9 @@
   (:gen-class)
   (:require [org.httpkit.server :as server]
             [ring.middleware.params :refer [wrap-params]]
+            [ring.middleware.keyword-params :refer [wrap-keyword-params]]
             [ring.middleware.session :refer [wrap-session]]
+            [ring.middleware.json :refer [wrap-json-body]]
             [ring.middleware.cookies :refer [wrap-cookies]]
             [ring.middleware.reload :refer [wrap-reload]]
             [lunchselector.oauth :refer [wrap-authentication wrap-unsign-cookie]]
@@ -10,21 +12,30 @@
             [lunchselector.utils :as utils]
             [lunchselector.core :as core]
             [clojure.tools.nrepl.server :as nrepl-server]
-            [cider.nrepl :refer (cider-nrepl-handler)]))
+            [cider.nrepl :refer (cider-nrepl-handler)]
+            [lunchselector.api :as api]))
 
 (def handler
   (bidi/make-handler
    ["/" { "" core/home
-          "restaurants" core/restaurants
-          "login" core/login
-          "vote" core/vote
-          "result" core/result
-          "add-offline-restaurants" core/add-offline-restaurants
-          "slack" core/slack
-          "unauthorized" core/unauthorized}]))
+         "restaurants" core/restaurants
+         "login" core/login
+         "vote" core/vote
+         "result" core/result
+         "add-offline-restaurants" core/add-offline-restaurants
+         "slack" core/slack
+         "unauthorized" core/unauthorized
+         "api/" {"restaurants" api/restaurants
+                 "popular-restaurant" api/popular-restaurant
+                 "vote" {:get api/get-user-votes
+                         :post api/add-votes
+                         :delete api/remove-user-votes}
+                 "current-votes" api/current-votes
+                 "location" api/location}}]))
 
 (def lunch-app
   (-> handler
+      wrap-json-body
       wrap-authentication
       wrap-unsign-cookie
       wrap-cookies

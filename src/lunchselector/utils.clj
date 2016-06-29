@@ -47,3 +47,14 @@
   []
    (let [an-hour 3600000]
      (+ an-hour (time-coerce/to-long (time/now)))))
+
+(defn build-json-response
+  [object]
+  {:status 200
+   :body (cheshire/encode object)
+   :headers {"Content-Type" "application/json;charset=UTF-8"}})
+
+(defn all-int?
+  [coll]
+  "Returns true if all the elements in the collection are integers. False otherwise"
+  (reduce #(and %1 (integer? %2)) true coll))
