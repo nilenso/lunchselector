@@ -1,7 +1,9 @@
 (ns lunchselector.utils
   (:require [cheshire.core :as cheshire]
             [clojure.edn :as edn]
-            [org.httpkit.client :as client]))
+            [org.httpkit.client :as client]
+            [clj-time.core :as time]
+            [clj-time.coerce :as time-coerce]))
 
 (def global-appconfig (atom {}))
 
@@ -40,3 +42,8 @@
   "Sends a Get request to the specified URI"
   ([uri] @(client/get uri))
   ([uri options] @(client/get uri options)))
+
+(defn get-expiry-time
+  []
+   (let [an-hour 3600000]
+     (+ an-hour (time-coerce/to-long (time/now)))))

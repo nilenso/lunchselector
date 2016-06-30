@@ -15,7 +15,9 @@
                  [commons-validator/commons-validator "1.4.0"]
                  [ring/ring-devel "1.3.0"]
                  [org.clojure/tools.nrepl "0.2.12"]
-                 [cider/cider-nrepl "0.12.0"]]
+                 [cider/cider-nrepl "0.12.0"]
+                 [buddy/buddy-sign "1.1.0"]
+                 [clj-time "0.12.0"]]
   :main ^:skip-aot lunchselector.app
   :target-path "target/%s"
   :plugins [[lein-ring "0.9.7"]]
