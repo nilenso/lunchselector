@@ -51,4 +51,7 @@
  ;; Database related keys
  :database-path "localhost:5432/lunches"
  :database-subprotocol "postgresql"
+
+;; Cookie Secret Key
+:app-secret-key "SECRET_KEY"
  }
