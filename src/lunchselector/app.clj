@@ -7,8 +7,9 @@
             [ring.middleware.json :refer [wrap-json-body]]
             [ring.middleware.cookies :refer [wrap-cookies]]
             [ring.middleware.reload :refer [wrap-reload]]
+            [ring.middleware.resource :refer [wrap-resource]]
             [lunchselector.oauth :refer [wrap-authentication wrap-unsign-cookie]]
-            [bidi.ring :as bidi]
+            [bidi.ring :as bidi :refer [->Resources ->Files]]
             [lunchselector.utils :as utils]
             [lunchselector.core :as core]
             [clojure.tools.nrepl.server :as nrepl-server]
@@ -17,7 +18,7 @@
 
 (def handler
   (bidi/make-handler
-   ["/" { "" core/home
+   ["/" { "" core/index
          "restaurants" core/restaurants
          "login" core/login
          "vote" core/vote
@@ -25,6 +26,8 @@
          "add-offline-restaurants" core/add-offline-restaurants
          "slack" core/slack
          "unauthorized" core/unauthorized
+         ;;"resources" (->Resources {:prefix "/"})
+         ;;"home" (->Files {:dir "./resources/index.html"})
          "api/" {"restaurants" api/restaurants
                  "popular-restaurant" api/popular-restaurant
                  "vote" {:get api/get-user-votes
@@ -35,6 +38,7 @@
 
 (def lunch-app
   (-> handler
+      (wrap-resource "public")
       wrap-json-body
       wrap-authentication
       wrap-unsign-cookie
