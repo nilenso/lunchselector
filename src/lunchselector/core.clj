@@ -13,6 +13,11 @@
             [clj-time.core :as time]
             [clj-time.coerce :as time-coerce]))
 
+(defn index
+  "Serve index.html at /"
+  [request]
+  (res/resource-response "public/index.html"))
+
 (defn restaurants
   "This page displays a list of offline + online restaurants"
   [request]

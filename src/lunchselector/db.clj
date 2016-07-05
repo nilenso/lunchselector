@@ -68,6 +68,16 @@
                    (coerce/to-sql-date today)
                    (coerce/to-sql-time ts-now)])))
 
+(defn current-votes
+  "Fetches votes casted for today"
+  []
+   (jdbc/query (db-spec)
+              [(str  "SELECT v.rest_id, r.name, count(*) as votes "
+                     "FROM " votes " AS v, " restaurants " AS r"
+                     " WHERE v.date = ?  AND r.rest_id = v.rest_id"
+                     " GROUP BY v.rest_id, r.name ORDER BY votes DESC ")
+               (coerce/to-sql-date (time/today))]))
+
 (defn fetch-votes-for-today
   "Fetches votes casted for today"
   []
@@ -79,6 +89,16 @@
                      "GROUP BY restaurant ORDER BY vote DESC "
                      "LIMIT 10 ")
                (coerce/to-sql-date (time/today))]))
+
+(defn fetch-user-votes
+  "Fetch the users vote for the current day"
+  [email]
+  (let [user-info (fetch-user-id email)
+        user-id (:user_id (first user-info))]
+        (jdbc/query (db-spec)
+                    [(str "SELECT rest_id FROM " votes
+                          " WHERE user_id = " user-id " AND"
+                          " to_char(timestamp, 'dd-mm-yyyy') = to_char(now(), 'dd-mm-yyyy')")])))
 
 (defn fetch-my-votes
   "Fetch the historical votes casted by the user, sorted by decreasing order with a limit of ten top votes."
@@ -111,6 +131,11 @@
               [(str "SELECT name as restaurant "
                     "FROM " restaurants " r "
                     "WHERE added_by != 'Zomato' ")]))
+
+(defn fetch-restaurants
+  []
+  (jdbc/query (db-spec)
+              [(str "SELECT rest_id, name FROM " restaurants)]))
 
 (defn check-votes
   "Checks if a user has already voted for a restaurant for today. Used in combination with cast-vote.
@@ -147,6 +172,33 @@
       email
       now
       email])))
+
+(defn cast-votes
+  "Adds votes to the db"
+  [email rest-id]
+  (let [user-id (:user_id (first (fetch-user-id email)))
+        today (coerce/to-sql-date (time/today))
+        now (coerce/to-sql-time (time/now))]
+    (jdbc/execute!
+     (db-spec)
+     [(str "INSERT into " votes
+           "(user_id, rest_id, date, timestamp) "
+           "SELECT ?, "           ;; User ID
+           " ?, "                 ;; Restaurant ID
+           " ?, "                 ;; Date
+           " ? "                 ;; Timestamp
+           "WHERE NOT EXISTS "
+           "(SELECT * FROM " votes
+           " WHERE user_id = ? "  ;; User ID
+           " AND rest_id = ? "    ;; Restaurant ID
+           " AND date = ? )" )    ;; Date (today)
+      user-id
+      rest-id
+      today
+      now
+      user-id
+      rest-id
+      today])))
 
 (defn cast-vote-safe
   "Adds a vote to the database in a transaction but checks if the vote is absent first"
@@ -198,3 +250,47 @@
       added-by
       (coerce/to-sql-time now)
       name])))
+
+(defn get-most-popular-restaurant-for-day-of-week
+  "Fetch the name of the restaurant that is most popular during today's day of week "
+  []
+  (jdbc/query
+   (db-spec)
+   [(str "SELECT v.rest_id, r.name, count(*) as votes FROM " votes " AS v,"
+         restaurants " AS r"
+         " WHERE to_char(v.timestamp, 'Dy') = to_char(now(), 'Dy')"
+         " AND v.rest_id = r.rest_id"
+         " GROUP BY v.rest_id, r.name"
+         " ORDER BY votes DESC")]))
+
+
+
+(defn remove-user-votes
+  "Removes the user's vote for the day for a specific restaurant"
+  [email restaurant-id]
+  (let [user-info (fetch-user-id email)
+        user-id (:user_id (first user-info))]
+    (jdbc/execute!
+     (db-spec)
+     [(str "DELETE FROM " votes
+           " WHERE user_id = ? AND rest_id = ? AND "
+           " to_char(timestamp, 'dd-mm-yyyy') = to_char(now(), 'dd-mm-yyyy') ")
+      user-id
+      restaurant-id])))
+
+(defn upsert-restaurant
+  "Upserts a restaurant entry in the restaurats table
+  FIXME: Upsert on conflict increases rest_id "
+  [{:keys [name zomato-id rest-type added-by]}]
+  (let [now (time/now)]
+    (jdbc/execute!
+     (db-spec)
+     [(str "INSERT into " restaurants
+           " (name, added_by, type, zomato_id, timestamp) "
+           "VALUES (?, ?, ?, ?, ?)"
+           " ON CONFLICT DO NOTHING")
+      name
+      added-by
+      rest-type
+      zomato-id
+      (coerce/to-sql-time now)])))

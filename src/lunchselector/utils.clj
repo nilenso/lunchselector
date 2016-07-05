@@ -47,3 +47,9 @@
   []
    (let [an-hour 3600000]
      (+ an-hour (time-coerce/to-long (time/now)))))
+
+(defn build-json-response
+  [object]
+  {:status 200
+   :body (cheshire/encode object)
+   :headers {"Content-Type" "application/json;charset=UTF-8"}})
