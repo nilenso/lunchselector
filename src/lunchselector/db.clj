@@ -72,10 +72,10 @@
   "Fetches votes casted for today"
   []
    (jdbc/query (db-spec)
-              [(str  "SELECT rest_id, count(*) as votes "
-                     "FROM " votes
-                     " WHERE date = ? "
-                     " GROUP BY rest_id ORDER BY votes DESC ")
+              [(str  "SELECT v.rest_id, r.name, count(*) as votes "
+                     "FROM " votes " AS v, " restaurants " AS r"
+                     " WHERE v.date = ?  AND r.rest_id = v.rest_id"
+                     " GROUP BY v.rest_id, r.name ORDER BY votes DESC ")
                (coerce/to-sql-date (time/today))]))
 
 (defn fetch-votes-for-today
@@ -256,9 +256,11 @@
   []
   (jdbc/query
    (db-spec)
-   [(str "SELECT rest_id, count(*) as votes FROM " votes
-         " WHERE to_char(timestamp, 'Dy') = to_char(now(), 'Dy')"
-         " GROUP BY rest_id"
+   [(str "SELECT v.rest_id, r.name, count(*) as votes FROM " votes " AS v,"
+         restaurants " AS r"
+         " WHERE to_char(v.timestamp, 'Dy') = to_char(now(), 'Dy')"
+         " AND v.rest_id = r.rest_id"
+         " GROUP BY v.rest_id, r.name"
          " ORDER BY votes DESC")]))
 
 

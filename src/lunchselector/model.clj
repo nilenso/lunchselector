@@ -70,9 +70,8 @@
 
 (defn submit-votes-api
   "Add the votes to the db with given email and list of restaurant ids"
-  [email ids]
-  (doseq [rest-id ids]
-    (db/cast-votes email rest-id)))
+  [email id]
+  (db/cast-votes email id))
 
 
 (defn submit-users

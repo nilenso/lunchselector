@@ -5,7 +5,7 @@ API Endpoints
 
 x GET /api/restaurants -> json [{:name :rating}]
 
-x POST /api/vote [{:rest_id}] -> success/fail
+x POST /api/vote {"votes" :rest_id} -> success/fail
 x GET /api/vote -> [:rest_id]
 x DELETE /api/vote {:rest_id} -> success/fail
 

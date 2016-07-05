@@ -18,10 +18,10 @@
   "Adds the user votes to the list of restaurants in params"
   [request]
   (let [email (get-in request [:unsigned-cookie :useremail])
-        restaurant-ids (get-in request [:body "votes"])]
-    (if (every? integer? restaurant-ids)
+        restaurant-id (get-in request [:body "votes"])]
+    (if (integer? restaurant-id)
       (do
-        (model/submit-votes-api email restaurant-ids)
+        (model/submit-votes-api email restaurant-id)
         (utils/build-json-response {:success true}))
       (utils/build-json-response {:success false}))))
 
