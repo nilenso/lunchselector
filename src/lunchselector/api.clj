@@ -6,9 +6,7 @@
 (defn restaurants
   "Return a list of map of restaurant id and name"
   [request]
-  (let [online-restaurants (model/online-restaurants)
-        offline-restaurants (model/offline-restaurants)
-        restaurants (into #{} (concat online-restaurants offline-restaurants))]
+  (let [restaurants (model/fetch-all-restaurants)]
     (utils/build-json-response restaurants)))
 
 (defn popular-restaurant
@@ -21,7 +19,7 @@
   [request]
   (let [email (get-in request [:unsigned-cookie :useremail])
         restaurant-ids (get-in request [:body "votes"])]
-    (if (utils/all-int? restaurant-ids)
+    (if (every? integer? restaurant-ids)
       (do
         (model/submit-votes-api email restaurant-ids)
         (utils/build-json-response {:success true}))
@@ -38,7 +36,7 @@
   [request]
   (let [email (get-in request [:unsigned-cookie :useremail])
         restaurant-ids (get-in request [:body "votes"])]
-    (if (utils/all-int? restaurant-ids)
+    (if (every? integer? restaurant-ids)
       (do (model/remove-user-votes email restaurant-ids)
           (utils/build-json-response {:success true}))
       (utils/build-json-response {:success false}))))
@@ -53,3 +51,14 @@
   [request]
   (utils/build-json-response {:lat (Float. (utils/get-config :org-latitude))
                               :long (Float. (utils/get-config :org-longitude))}))
+
+
+(defn update-online-restaurants [request]
+  (model/update-restaurants-list)
+  (utils/build-json-response {:success true}))
+
+(defn add-offline-restaurant [request]
+  (let [restaurant  (get-in request [:body "restaurant"])
+        email  (get-in request [:unsigned-cookie :useremail])]
+    (model/add-restaurant restaurant email)
+    (utils/build-json-response {:success true})))

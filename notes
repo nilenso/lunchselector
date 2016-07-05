@@ -11,8 +11,10 @@ x DELETE /api/vote {:rest_id} -> success/fail
 
 x GET /api/popular-restaurant[-of-day-of-week] -> {:name :rest_id}
 
-POST /api/add-restaurant {:name :rating} -> sucess with rest_id
+x POST /api/add-restaurant {:name} -> sucess with rest_id
 
 x GET /api/current-votes
 
 x GET /api/location -> {:lat :long}
+
+x GET /api/update-online-restaurants -> success/fail

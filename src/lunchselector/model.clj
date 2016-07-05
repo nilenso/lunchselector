@@ -42,6 +42,11 @@
   [restaurant]
   (get-in restaurant [:user_rating :aggregate_rating]))
 
+(defn- zomato-id
+  "Get the zomato id of the retaurant"
+  [restaurant]
+  (get-in restaurant [:restaurant :id]))
+
 (defn online-restaurants
   "Gets the list of online restaurants from Zomato"
   ([] (online-restaurants ""))
@@ -129,3 +134,26 @@
   "Fetches all the votes submitte today"
   []
   (db/current-votes))
+
+(defn update-restaurants-list
+  "Update the restaurants table with data from zomato"
+  []
+  (let [zomato-response (fetch-restaurants "")
+        zomato-restaurants (utils/parse-response-body-map zomato-response)]
+    (doseq [restaurant (:restaurants zomato-restaurants)]
+      (db/upsert-restaurant {:name (restaurant-name restaurant)
+                             :zomato-id (zomato-id restaurant)
+                             :rest-type "online"
+                             :added-by "Zomato"}))))
+
+(defn add-restaurant
+  "Add an offline restaurant"
+  [restaurant email]
+  (db/upsert-restaurant {:name restaurant
+                         :zomato-id nil
+                         :rest-type "offline"
+                         :added-by email}))
+
+(defn fetch-all-restaurants
+  []
+  (db/fetch-restaurants))

@@ -26,15 +26,15 @@
          "add-offline-restaurants" core/add-offline-restaurants
          "slack" core/slack
          "unauthorized" core/unauthorized
-         ;;"resources" (->Resources {:prefix "/"})
-         ;;"home" (->Files {:dir "./resources/index.html"})
          "api/" {"restaurants" api/restaurants
                  "popular-restaurant" api/popular-restaurant
                  "vote" {:get api/get-user-votes
                          :post api/add-votes
                          :delete api/remove-user-votes}
                  "current-votes" api/current-votes
-                 "location" api/location}}]))
+                 "location" api/location
+                 "update-restaurants"{:get api/update-online-restaurants
+                                      :post api/add-offline-restaurant}}}]))
 
 (def lunch-app
   (-> handler

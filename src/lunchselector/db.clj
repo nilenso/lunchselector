@@ -72,7 +72,7 @@
   "Fetches votes casted for today"
   []
    (jdbc/query (db-spec)
-              [(str  "SELECT rest_id as rest_id, count(*) as votes "
+              [(str  "SELECT rest_id, count(*) as votes "
                      "FROM " votes
                      " WHERE date = ? "
                      " GROUP BY rest_id ORDER BY votes DESC ")
@@ -131,6 +131,11 @@
               [(str "SELECT name as restaurant "
                     "FROM " restaurants " r "
                     "WHERE added_by != 'Zomato' ")]))
+
+(defn fetch-restaurants
+  []
+  (jdbc/query (db-spec)
+              [(str "SELECT rest_id, name FROM " restaurants)]))
 
 (defn check-votes
   "Checks if a user has already voted for a restaurant for today. Used in combination with cast-vote.
@@ -257,6 +262,7 @@
          " ORDER BY votes DESC")]))
 
 
+
 (defn remove-user-votes
   "Removes the user's vote for the day for a specific restaurant"
   [email restaurant-id]
@@ -269,3 +275,20 @@
            " to_char(timestamp, 'dd-mm-yyyy') = to_char(now(), 'dd-mm-yyyy') ")
       user-id
       restaurant-id])))
+
+(defn upsert-restaurant
+  "Upserts a restaurant entry in the restaurats table
+  FIXME: Upsert on conflict increases rest_id "
+  [{:keys [name zomato-id rest-type added-by]}]
+  (let [now (time/now)]
+    (jdbc/execute!
+     (db-spec)
+     [(str "INSERT into " restaurants
+           " (name, added_by, type, zomato_id, timestamp) "
+           "VALUES (?, ?, ?, ?, ?)"
+           " ON CONFLICT DO NOTHING")
+      name
+      added-by
+      rest-type
+      zomato-id
+      (coerce/to-sql-time now)])))
